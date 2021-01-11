@@ -22,8 +22,10 @@
 			add_chameleon_choice(choices, path)
 		chameleon_choices = sortAssoc(choices)
 
+
 	atom_holder = holder
 	chameleon_verb += new/atom/proc/chameleon_appearance(atom_holder,"Change [atom_holder.name] Appearance")
+	chameleon_verb += new/atom/proc/change_chameleon_outfit()
 
 /datum/extension/chameleon/Destroy()
 	. = ..()
@@ -94,6 +96,74 @@
 	for (var/path in types)
 		add_chameleon_choice(choices, path)
 	return sortAssoc(choices)
+
+/datum/extension/chameleon/proc/initialize_outfits()
+	var/global/list/standard_outfit_options
+	if(!standard_outfit_options)	
+		standard_outfit_options = list()
+		for(var/path in typesof(/decl/hierarchy/outfit/job))
+			for(var/subpath in typesof(path))
+				var/decl/hierarchy/outfit/job/J = subpath
+				if(initial(J.chameleon))
+					standard_outfit_options[initial(J.name)] = subpath
+		sortTim(standard_outfit_options, /proc/cmp_text_asc)
+	return standard_outfit_options
+
+/atom/proc/change_chameleon_outfit()
+	set name = "Change Chameleon Outfit"
+	set desc = "Activate the holographic appearance changing module across all acessible chameleon devices."
+	set category = "Object"
+	if(usr.incapacitated() || !ishuman(usr))
+		return FALSE
+	if (has_extension(src,/datum/extension/chameleon))
+		var/datum/extension/chameleon/C = get_extension(src, /datum/extension/chameleon)
+		var/list/outfits = C.initialize_outfits()
+		var/selected_key = input(usr, "Choose an Outfit", "Chameleon Outfit") as null|anything in outfits
+		if (!selected_key)
+			return FALSE
+		var/decl/hierarchy/outfit/selected = outfits[selected_key]
+		var/mob/living/carbon/human/user = usr
+		if (usr.incapacitated())
+			return FALSE
+		// Under
+		var/datum/extension/chameleon/under = get_extension(user.w_uniform, /datum/extension/chameleon)
+		if(under && initial(selected.uniform))
+			under.disguise(initial(selected.uniform), user)
+		// Head
+		var/datum/extension/chameleon/head = get_extension(user.head, /datum/extension/chameleon)
+		if(head && initial(selected.head))
+			head.disguise(initial(selected.head), user)
+		// Suit
+		var/datum/extension/chameleon/suit = get_extension(user.wear_suit, /datum/extension/chameleon)
+		if(suit && initial(selected.suit))
+			suit.disguise(initial(selected.suit), user)
+		// Shoes
+		var/datum/extension/chameleon/shoes = get_extension(user.shoes, /datum/extension/chameleon)
+		if(suit && initial(selected.shoes))
+			shoes.disguise(initial(selected.shoes), user)
+		// Back
+		var/datum/extension/chameleon/backpack = get_extension(user.back, /datum/extension/chameleon)
+		if(suit && initial(selected.back))
+			backpack.disguise(initial(selected.back), user)
+		// Glasses
+		var/datum/extension/chameleon/glasses = get_extension(user.glasses, /datum/extension/chameleon)
+		if(glasses && initial(selected.glasses))
+			glasses.disguise(initial(selected.glasses), user)
+		// Gloves
+		var/datum/extension/chameleon/gloves = get_extension(user.gloves, /datum/extension/chameleon)
+		if(gloves && initial(selected.gloves))
+			gloves.disguise(initial(selected.gloves), user)
+		// Mask
+		var/datum/extension/chameleon/mask = get_extension(user.wear_mask, /datum/extension/chameleon)
+		if(mask && initial(selected.mask))
+			mask.disguise(initial(selected.mask), user)
+		// Headset
+		var/datum/extension/chameleon/headset = get_extension(user.l_ear, /datum/extension/chameleon)
+		if(headset && initial(selected.l_ear))
+			headset.disguise(initial(selected.l_ear), user)
+		user.regenerate_icons()
+	else
+		src.verbs -= /atom/proc/change_chameleon_outfit
 
 /atom/proc/chameleon_appearance()
 	set name = "Change Appearance"

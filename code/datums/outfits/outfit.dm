@@ -41,6 +41,7 @@ var/list/outfits_decls_by_type_
 	var/l_hand = null
 	var/holster = null
 	var/list/backpack_contents = list() // In the list(path=count,otherpath=count) format
+	var/chameleon=TRUE // For whether or not an outfit is available for a chameleon suit change
 
 	var/id_types
 	var/id_desc
